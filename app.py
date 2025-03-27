@@ -12,7 +12,7 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersecretkey")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Moderation API URL (guardianAI API - provided by you)
+# API URL
 MODERATION_API_URL = "https://guardianai-app-146374580513.us-central1.run.app"
 
 # In-memory storage for posts and users
@@ -27,7 +27,12 @@ def initialize_session():
         session["session_id"] = str(hash(str(datetime.now())))
         users_db[session["session_id"]] = {"is_banned": False}
         session["banned"] = False
+    # Ensure users_db is in sync with session
+    if session["session_id"] not in users_db:
+        users_db[session["session_id"]] = {"is_banned": False}
+        session["banned"] = False
 
+# Route for posting (homepage)
 @app.route("/", methods=["GET", "POST"])
 def index():
     global post_counter
@@ -35,7 +40,7 @@ def index():
     if request.method == "POST":
         # Check if user is banned
         if session.get("banned"):
-            flash("You are banned from posting.", "error")
+            flash("Your post violates our guidelines. You have been banned.", "error")
             return redirect(url_for("index"))
 
         text = request.form.get("text", "")
@@ -50,35 +55,43 @@ def index():
 
         # Mock moderation result (for fallback)
         def mock_moderation(content, content_type):
-            harmful_keywords = ["inappropriate", "hate", "offensive"]
-            confidence = 50.0
-            if any(keyword in content.lower() for keyword in harmful_keywords):
-                confidence = 85.0
-                if "hate" in content.lower():
-                    confidence = 99.5
+            # Default mock response: safe
             return {
-                "action": "pending",
+                "action": "pass",
                 "result": {
-                    "is_harmful": confidence > 50.0,
-                    "confidence": confidence,
-                    "text_analysis": {"confidence": confidence} if content_type == "image" else None
+                    "is_harmful": False,
+                    "confidence": 50.0,
+                    "label": "POSITIVE",
+                    "text_analysis": {"confidence": 50.0} if content_type == "image" else None
                 },
                 "summary": f"Mock {content_type} moderation result"
             }
 
         # Moderate the post
         if text:
-            try:
-                response = requests.post(
-                    f"{MODERATION_API_URL}/moderate/text",
-                    json={"text": text, "user_id": session["session_id"]},
-                    timeout=5
-                )
-                response.raise_for_status()
-                result = response.json()
-            except Exception as e:
-                logger.error(f"GuardianAI API error: {str(e)}")
-                result = mock_moderation(text, "text")
+            # Special rule: Approve posts containing "GDG Solution Challenge 2025"
+            if "gdg solution challenge 2025" in text.lower():
+                result = {
+                    "action": "pass",
+                    "result": {
+                        "is_harmful": False,
+                        "confidence": 50.0,
+                        "label": "POSITIVE"
+                    },
+                    "summary": "Approved due to GDG Solution Challenge 2025"
+                }
+            else:
+                try:
+                    response = requests.post(
+                        f"{MODERATION_API_URL}/moderate/text",
+                        json={"text": text, "user_id": session["session_id"]},
+                        timeout=10
+                    )
+                    response.raise_for_status()
+                    result = response.json()
+                except Exception as e:
+                    logger.error(f"GuardianAI API error: {str(e)}")
+                    result = mock_moderation(text, "text")
             post["type"] = "text"
             post["content"] = text
             post["moderation_result"] = result
@@ -91,7 +104,7 @@ def index():
                 response = requests.post(
                     f"{MODERATION_API_URL}/moderate/image",
                     json={"image": image_data, "user_id": session["session_id"]},
-                    timeout=5
+                    timeout=10
                 )
                 response.raise_for_status()
                 result = response.json()
@@ -111,19 +124,22 @@ def index():
         # Determine moderation action based on API response
         is_harmful = post["moderation_result"]["result"]["is_harmful"]
         confidence = 0.0
+        label = post["moderation_result"]["result"].get("label", "POSITIVE")  # Safely get label, default to "POSITIVE"
         if post["type"] == "text":
             confidence = post["moderation_result"]["result"]["confidence"]
         elif post["type"] == "image":
             confidence = post["moderation_result"]["result"].get("text_analysis", {}).get("confidence", 0.0)
 
-        # Apply moderation rules based on is_harmful and content analysis
-        contains_hate = "hate" in post.get("content", "").lower()
-        if is_harmful and contains_hate and confidence > 99.0:
+        # Apply moderation rules based on API fields
+        if is_harmful and confidence > 98.0 and label == "NEGATIVE":
+            # Ensure user entry exists in users_db
+            if session["session_id"] not in users_db:
+                users_db[session["session_id"]] = {"is_banned": False}
             users_db[session["session_id"]]["is_banned"] = True
             session["banned"] = True
             flash("Your post violates our guidelines. You have been banned.", "error")
             post["status"] = "auto_remove"
-        elif is_harmful:
+        elif is_harmful and confidence <= 98.0 and label == "NEGATIVE":
             flash("Your post has been flagged for review.", "warning")
             post["status"] = "human_review"
         else:
@@ -146,7 +162,7 @@ def view_posts():
     session_id = session["session_id"]
     user_posts = [
         post | {"id": post_id} for post_id, post in posts_db.items()
-        if post["session_id"] == session_id and post["status"] in ["human_review", "pass"]
+        if post["session_id"] == session_id and post["status"] in ["human_review", "pass", "approve"]
     ]
     user_posts.sort(key=lambda x: x["timestamp"], reverse=True)
     return render_template("posts.html", posts=user_posts)
@@ -167,6 +183,9 @@ def dashboard():
         ban_action = request.form.get("ban_action")
         if user_id in users_db and ban_action in ["ban", "unban"]:
             users_db[user_id]["is_banned"] = (ban_action == "ban")
+            # Update session if the user being banned/unbanned is the current user
+            if user_id == session["session_id"]:
+                session["banned"] = (ban_action == "ban")
             flash(f"User {ban_action}ned successfully.", "success")
 
         return redirect(url_for("dashboard"))
