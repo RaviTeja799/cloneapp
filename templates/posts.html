@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Posts - Same Social Media App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <header>
+        <h1>Same Social Media App</h1>
+        <nav>
+            <a href="/">Post</a>
+            <a href="/posts">View Posts</a>
+        </nav>
+    </header>
+    <main>
+        <section class="posts-section">
+            <h2>Your Posts</h2>
+            {% if posts %}
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Post ID</th>
+                            <th>Type</th>
+                            <th>Content</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for post in posts %}
+                            <tr>
+                                <td>{{ post.id }}</td>
+                                <td>{{ post.type }}</td>
+                                <td>
+                                    {% if post.type == 'text' %}
+                                        {{ post.content }}
+                                    {% else %}
+                                        <img src="data:image/jpeg;base64,{{ post.content }}" alt="Post Image" style="max-width: 100px;">
+                                    {% endif %}
+                                </td>
+                                <td>{{ post.status }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>You have no posts to display.</p>
+            {% endif %}
+        </section>
+    </main>
+    <footer>
+        <p>© 2025 Same Social Media App. All rights reserved.</p>
+    </footer>
+</body>
+</html>
