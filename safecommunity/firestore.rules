@@ -1,32 +1,9 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Common functions
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-    
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
-    
-    // Posts collection
-    match /posts/{postId} {
-      allow read: if true; // Anyone can read posts
-      allow create: if isAuthenticated(); // Only authenticated users can create posts
-      allow update, delete: if isOwner(resource.data.userId); // Only owners can update/delete their posts
-    }
-    
-    // Users collection
-    match /users/{userId} {
-      allow read: if true; // Public profiles
-      allow create: if isAuthenticated() && request.auth.uid == userId;
-      allow update, delete: if isOwner(userId);
-    }
-    
-    // Default deny
     match /{document=**} {
-      allow read, write: if false;
+      // Allow full read/write access to all documents by anyone
+      allow read, write: if true;
     }
   }
 }
