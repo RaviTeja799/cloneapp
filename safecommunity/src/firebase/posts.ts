@@ -1,4 +1,4 @@
-import { collection, doc, setDoc, updateDoc, getDocs, getDoc, query, where, onSnapshot, addDoc, orderBy, limit, startAfter, Timestamp, QueryDocumentSnapshot, QueryConstraint } from 'firebase/firestore';
+import { collection, doc, setDoc, updateDoc, getDocs, getDoc, query, where, onSnapshot, addDoc, orderBy, limit, startAfter, DocumentData, QueryDocumentSnapshot, QueryConstraint } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from './config';
 import { publishToDetectionRequests } from './pubsub';
@@ -28,6 +28,7 @@ export interface PostData {
   label?: string;
   confidence?: number;
   summary?: string;
+  flaggedContent?: string;
 }
 
 // Interface representing a post in the system
@@ -400,7 +401,12 @@ export const getPosts = async (limitCount: number = 10, startAfter?: string): Pr
     if (startAfter) {
       const startAfterDoc = await getDoc(doc(db, 'posts', startAfter));
       if (startAfterDoc.exists()) {
-        q = query(collection(db, 'posts'), orderBy('created_at', 'desc'), startAfter(startAfterDoc), limit(limitCount));
+        q = query(
+          collection(db, 'posts'), 
+          orderBy('created_at', 'desc'), 
+          startAfter(startAfterDoc), 
+          limit(limitCount)
+        );
       }
     }
     
@@ -501,7 +507,7 @@ export const updatePostStatusWithModeration = async (postId: string, status: 'AP
 // Interface for query configuration
 interface QueryConfig {
   collectionName: string;
-  whereConditions: { field: string; operator: string; value: any }[];
+  whereConditions: { field: string; operator: '==' | '!=' | '>' | '>=' | '<' | '<='; value: any }[];
   orderByField: string;
   orderDirection: 'asc' | 'desc';
   limitCount?: number;
@@ -522,7 +528,7 @@ export const listenToUserPostsOptimized = (userId: string, callback: (posts: Pos
   };
   
   // Only trigger when post status changes or a new post is added
-  const changeDetector = (prev: Document[], current: DocumentData[]) => {
+  const changeDetector = (prev: PostData[], current: PostData[]) => {
     // Check if there are different number of posts
     if (prev.length !== current.length) return true;
     
@@ -561,7 +567,7 @@ export const listenToPendingPostsOptimized = (callback: (posts: PostData[]) => v
   return createThrottledQueryListener(
     queryConfig,
     (docs) => {
-      const pendingPosts = docs.map(doc => doc.data() as PostData);
+      const pendingPosts = docs as PostData[];
       console.log(`[Posts] Pending posts updated: ${pendingPosts.length} posts waiting for moderation (throttled)`);
       callback(pendingPosts);
     },

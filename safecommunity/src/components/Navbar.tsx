@@ -107,11 +107,14 @@ const Navbar = () => {
         {currentUser ? (
           <>
             <ListItem 
-              component={Link} 
-              to="/home" 
-              onClick={() => setDrawerOpen(false)}
+              button
+              component="a" 
+              href="/home" 
+              onClick={() => {
+                setDrawerOpen(false);
+                navigate('/home');
+              }}
               selected={location.pathname === '/home'}
-              component="button"
             >
               <ListItemIcon>
                 <HomeIcon color={location.pathname === '/home' ? 'primary' : undefined} />
@@ -120,11 +123,14 @@ const Navbar = () => {
             </ListItem>
             
             <ListItem 
-              component={Link} 
-              to="/profile" 
-              onClick={() => setDrawerOpen(false)}
-              selected={location.pathname === '/profile'}
               button
+              component="a" 
+              href="/profile" 
+              onClick={() => {
+                setDrawerOpen(false);
+                navigate('/profile');
+              }}
+              selected={location.pathname === '/profile'}
             >
               <ListItemIcon>
                 <PersonIcon color={location.pathname === '/profile' ? 'primary' : undefined} />
@@ -134,11 +140,14 @@ const Navbar = () => {
             
             {userData?.isModerator && (
               <ListItem 
-                component={Link} 
-                to="/moderator" 
-                onClick={() => setDrawerOpen(false)}
-                selected={location.pathname === '/moderator'}
                 button
+                component="a" 
+                href="/moderator" 
+                onClick={() => {
+                  setDrawerOpen(false);
+                  navigate('/moderator');
+                }}
+                selected={location.pathname === '/moderator'}
               >
                 <ListItemIcon>
                   <DashboardIcon color={location.pathname === '/moderator' ? 'primary' : undefined} />
@@ -149,7 +158,7 @@ const Navbar = () => {
             
             <Divider sx={{ my: 1 }} />
             
-            <ListItem component="button" onClick={handleLogout}>
+            <ListItem button onClick={handleLogout}>
               <ListItemIcon>
                 <LogoutIcon />
               </ListItemIcon>
@@ -159,11 +168,14 @@ const Navbar = () => {
         ) : (
           <>
             <ListItem 
-              component={Link} 
-              to="/login" 
-              onClick={() => setDrawerOpen(false)}
-              selected={location.pathname === '/login'}
               button
+              component="a" 
+              href="/login" 
+              onClick={() => {
+                setDrawerOpen(false);
+                navigate('/login');
+              }}
+              selected={location.pathname === '/login'}
             >
               <ListItemIcon>
                 <PersonIcon color={location.pathname === '/login' ? 'primary' : undefined} />
@@ -172,11 +184,14 @@ const Navbar = () => {
             </ListItem>
             
             <ListItem 
-              component={Link} 
-              to="/signup" 
-              onClick={() => setDrawerOpen(false)}
-              selected={location.pathname === '/signup'}
               button
+              component="a" 
+              href="/signup" 
+              onClick={() => {
+                setDrawerOpen(false);
+                navigate('/signup');
+              }}
+              selected={location.pathname === '/signup'}
             >
               <ListItemIcon>
                 <PersonIcon color={location.pathname === '/signup' ? 'primary' : undefined} />

@@ -20,9 +20,7 @@ import {
   Badge,
   useTheme,
   useMediaQuery,
-  LinearProgress,
-  Tooltip,
-  IconButton
+  LinearProgress
 } from '@mui/material';
 import { 
   CheckCircle as CheckCircleIcon, 
@@ -34,7 +32,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { getPendingPosts, updatePostStatus, PostData, listenToPendingPostsOptimized } from '../firebase/posts';
 import { useNavigate } from 'react-router-dom';
-import { sanitizeText, renderTextWithNewlines } from '../utils/contentSanitizer';
+import { renderTextWithNewlines } from '../utils/contentSanitizer';
 
 // Utility functions for moderator dashboard
 const formatRelativeTime = (dateString: string) => {
@@ -224,14 +222,14 @@ const ModeratorDashboard = () => {
         </Typography>
         
         <Grid container spacing={1} mt={1}>
-          <Grid item xs={12} sm={6}>
+          <Grid component="div" item xs={12} sm={6}>
             <Typography variant="body2">
               <strong>Label:</strong> {post.label || 'N/A'}
             </Typography>
           </Grid>
           
           {confidence !== null && (
-            <Grid item xs={12} sm={6}>
+            <Grid component="div" item xs={12} sm={6}>
               <Typography variant="body2">
                 <strong>Confidence:</strong> {confidence}%
               </Typography>
@@ -245,7 +243,7 @@ const ModeratorDashboard = () => {
           )}
           
           {post.flaggedContent && (
-            <Grid item xs={12}>
+            <Grid component="div" item xs={12}>
               <Typography variant="body2" mt={1}>
                 <strong>Flagged Content:</strong> {post.flaggedContent}
               </Typography>
@@ -287,7 +285,7 @@ const ModeratorDashboard = () => {
         </Box>
         
         <Grid container spacing={3}>
-          <Grid item xs={6} sm={3}>
+          <Grid component="div" item xs={6} sm={3}>
             <Card sx={{ bgcolor: '#f5f5f5', height: '100%' }}>
               <CardContent>
                 <Typography variant="subtitle2" color="text.secondary">Total Reviewed</Typography>
@@ -295,7 +293,7 @@ const ModeratorDashboard = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={6} sm={3}>
+          <Grid component="div" item xs={6} sm={3}>
             <Card sx={{ bgcolor: '#e8f5e9', height: '100%' }}>
               <CardContent>
                 <Typography variant="subtitle2" color="success.main">Approved</Typography>
@@ -303,7 +301,7 @@ const ModeratorDashboard = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={6} sm={3}>
+          <Grid component="div" item xs={6} sm={3}>
             <Card sx={{ bgcolor: '#ffebee', height: '100%' }}>
               <CardContent>
                 <Typography variant="subtitle2" color="error.main">Rejected</Typography>
@@ -311,7 +309,7 @@ const ModeratorDashboard = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={6} sm={3}>
+          <Grid component="div" item xs={6} sm={3}>
             <Card sx={{ bgcolor: '#fff8e1', height: '100%' }}>
               <CardContent>
                 <Typography variant="subtitle2" color="warning.main">Pending</Typography>
@@ -350,20 +348,20 @@ const ModeratorDashboard = () => {
             // All posts view
             <Grid container spacing={3}>
               {pendingPosts.map((post) => (
-                <Grid item xs={12} md={6} key={post.post_id}>
+                <Grid component="div" item xs={12} md={6} key={post.post_id}>
                   <Card elevation={3}>
                     <CardContent>
                       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                         <Box display="flex" alignItems="center">
                           <Avatar sx={{ bgcolor: '#e91e63', mr: 2 }}>
-                            {post.user_name.charAt(0)}
+                            {post.user_name ? post.user_name.charAt(0) : '?'}
                           </Avatar>
                           <Box>
                             <Typography variant="subtitle1">
                               {post.user_name}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
-                              Post #{post.post_id.substring(post.post_id.length - 6)}
+                              Post #{post.post_id ? post.post_id.substring(Math.max(0, post.post_id.length - 6)) : 'Unknown'}
                             </Typography>
                           </Box>
                         </Box>
@@ -438,7 +436,7 @@ const ModeratorDashboard = () => {
                 <Paper elevation={2} sx={{ mb: 3, p: 2 }} key={group.user_id}>
                   <Box display="flex" alignItems="center" mb={2}>
                     <Avatar sx={{ bgcolor: '#9c27b0', mr: 2 }}>
-                      {group.user_name.charAt(0)}
+                      {group.user_name ? group.user_name.charAt(0) : '?'}
                     </Avatar>
                     <Box>
                       <Typography variant="h6">{group.user_name}</Typography>
@@ -452,12 +450,12 @@ const ModeratorDashboard = () => {
                   
                   <Grid container spacing={2}>
                     {group.posts.map((post) => (
-                      <Grid item xs={12} md={6} key={post.post_id}>
+                      <Grid component="div" item xs={12} md={6} key={post.post_id}>
                         <Card variant="outlined">
                           <CardContent>
                             <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
                               <Typography variant="caption" color="text.secondary">
-                                Post #{post.post_id.substring(post.post_id.length - 6)}
+                                Post #{post.post_id ? post.post_id.substring(Math.max(0, post.post_id.length - 6)) : 'Unknown'}
                               </Typography>
                               <Chip 
                                 label="PENDING" 

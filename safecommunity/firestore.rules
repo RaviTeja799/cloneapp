@@ -1,41 +1,32 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Base rules
-    match /{document=**} {
-      allow read, write: if false; // Default deny all
+    // Common functions
+    function isAuthenticated() {
+      return request.auth != null;
     }
     
-    // User profiles
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Posts collection
+    match /posts/{postId} {
+      allow read: if true; // Anyone can read posts
+      allow create: if isAuthenticated(); // Only authenticated users can create posts
+      allow update, delete: if isOwner(resource.data.userId); // Only owners can update/delete their posts
+    }
+    
+    // Users collection
     match /users/{userId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth.uid == userId;
-      allow update: if request.auth.uid == userId;
-      allow delete: if false; // Don't allow user deletion from client
+      allow read: if true; // Public profiles
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update, delete: if isOwner(userId);
     }
     
-    // Posts data
-    match /preprocessed_data/{postId} {
-      // Anyone can read approved posts
-      allow read: if resource.data.status == 'APPROVED';
-      
-      // Users can read their own posts regardless of status
-      allow read: if request.auth.uid == resource.data.user_id;
-      
-      // Moderators can read any posts
-      allow read: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isModerator == true;
-      
-      // Only authenticated users can create posts
-      allow create: if request.auth != null && 
-                     request.resource.data.user_id == request.auth.uid;
-      
-      // Users can only update their own posts if they're not already being moderated
-      allow update: if request.auth.uid == resource.data.user_id && 
-                     resource.data.status != 'PROCESSING' && 
-                     resource.data.status != 'PENDING';
-      
-      // Moderators can update any post status
-      allow update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isModerator == true;
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

@@ -167,7 +167,7 @@ const Home = () => {
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Grid container spacing={3}>
         {/* User Stats Sidebar - Conditional rendering based on screen size */}
-        <Grid item xs={12} md={3} sx={{ display: { xs: isMobile ? 'none' : 'block', md: 'block' } }}>
+        <Grid component="div" item xs={12} md={3} sx={{ display: { xs: isMobile ? 'none' : 'block', md: 'block' } }}>
           <Paper elevation={3} sx={{ 
             p: 3,
             height: '100%',
@@ -192,8 +192,8 @@ const Home = () => {
                 {userData.email}
               </Typography>
               <Chip 
-                label={userData.role === 'moderator' ? 'Moderator' : 'Member'} 
-                color={userData.role === 'moderator' ? 'secondary' : 'primary'} 
+                label={userData?.role === 'moderator' ? 'Moderator' : 'Member'} 
+                color={userData?.role === 'moderator' ? 'secondary' : 'primary'} 
                 size="small"
                 sx={{ mb: 2 }}
               />
@@ -226,7 +226,7 @@ const Home = () => {
 
         {/* Mobile User Info - Only visible on mobile */}
         {isMobile && (
-          <Grid item xs={12}>
+          <Grid component="div" item xs={12}>
             <Paper elevation={2} sx={{ 
               p: 2, 
               mb: 2,
@@ -262,7 +262,7 @@ const Home = () => {
         )}
 
         {/* Main Content */}
-        <Grid item xs={12} md={isMobile ? 12 : 9}>
+        <Grid component="div" item xs={12} md={isMobile ? 12 : 9}>
           {/* Post Creation */}
           <Paper elevation={3} sx={{ 
             p: 3, 

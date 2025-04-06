@@ -19,7 +19,7 @@ const Footer = () => {
     >
       <Container maxWidth="lg">
         <Grid container spacing={3} justifyContent="space-between">
-          <Grid item xs={12} md={4}>
+          <Grid component="div" item xs={12} md={4}>
             <Typography variant="h6" gutterBottom>
               SafeCommunity
             </Typography>
@@ -27,7 +27,7 @@ const Footer = () => {
               Creating a safe online environment through advanced content moderation and community guidelines.
             </Typography>
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid component="div" item xs={12} md={4}>
             <Typography variant="h6" gutterBottom>
               Quick Links
             </Typography>
@@ -44,7 +44,7 @@ const Footer = () => {
               My Profile
             </Link>
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid component="div" item xs={12} md={4}>
             <Typography variant="h6" gutterBottom>
               Connect With Us
             </Typography>

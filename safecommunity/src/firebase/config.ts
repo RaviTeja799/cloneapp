@@ -5,28 +5,30 @@ import { getStorage } from 'firebase/storage';
 import { getAnalytics, isSupported } from 'firebase/analytics';
 import { initializeAppCheckService } from './appCheck';
 
-// Firebase configuration from environment variables
+// Firebase configuration
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+  apiKey: "AIzaSyD9_7pVlqoACiviMRNi74LIP4M9DFyxbaQ",
+  authDomain: "guardianai-455109.firebaseapp.com",
+  projectId: "guardianai-455109",
+  storageBucket: "guardianai-455109.firebasestorage.app",
+  messagingSenderId: "891154200436",
+  appId: "1:891154200436:web:f707da198d835705591e21",
+  measurementId: "G-ZQT44LD0X9"
 };
+
+console.log('Firebase Config:', firebaseConfig); // Log for debugging
 
 // Initialize Firebase
 export const app = initializeApp(firebaseConfig);
 
 // Initialize App Check in non-development environments for security
 if (!import.meta.env.DEV) {
-  initializeAppCheckService(false);
+  initializeAppCheckService(app, false);
 } else {
   // In development, initialize with debug token
-  initializeAppCheckService(true);
-  // Use the provided debug token
-  window.FIREBASE_APPCHECK_DEBUG_TOKEN = '14983A33-5BDE-455F-93F1-9389A930DC6E';
+  initializeAppCheckService(app, true);
+  // Use the provided debug token - use type assertion to avoid TypeScript error
+  (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = '14983A33-5BDE-455F-93F1-9389A930DC6E';
   console.log('Firebase App Check initialized in debug mode with token');
 }
 
@@ -38,6 +40,7 @@ export const storage = getStorage(app);
 // Initialize analytics only if supported by the browser
 export const analytics = isSupported().then(yes => yes ? getAnalytics(app) : null);
 
-export const FIREBASE_APPCHECK_DEBUG_TOKEN = '14983A33-5BDE-455F-93F1-9389A930DC6E'; // Debug token for App Check
+// Export debug token for App Check as a constant
+export const FIREBASE_APPCHECK_DEBUG_TOKEN = '14983A33-5BDE-455F-93F1-9389A930DC6E';
 
 export default app;
